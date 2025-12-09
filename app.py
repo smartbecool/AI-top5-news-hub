@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import feedparser
 from urllib.parse import quote_plus
+from bs4 import BeautifulSoup
 
 
 # ------------ CONFIG ------------
