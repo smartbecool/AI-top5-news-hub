@@ -181,7 +181,16 @@ else:
         ts = st.session_state["last_refresh"].strftime("%Y-%m-%d %H:%M")
         st.caption(f"🕒 Last refreshed: {ts}")
 
+     # Bubble chart
+    st.subheader("Category bubble view (experimental)")
+    st.caption("Bubble size ≈ how often you viewed that category in this session.")
+    show_bubble_chart(ordered_categories, primary_interest)
+    st.markdown("---")
+
     for cat in ordered_categories:
+        st.session_state["category_engagement"][cat] = (
+            st.session_state["category_engagement"].get(cat, 0) + 1
+        )
         st.markdown(f"## 📂 {cat}")
 
         query = CATEGORY_QUERIES[cat]
