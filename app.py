@@ -4,7 +4,9 @@ import feedparser
 from urllib.parse import quote_plus
 from bs4 import BeautifulSoup
 from datetime import datetime
+from streamlit_plotly_events import plotly_events
 import plotly.express as px
+
 
 
 import pandas as pd
@@ -147,10 +149,15 @@ primary_interest = st.sidebar.selectbox(
     index=1,  # default to Tech / AI
 )
 
+# Initialize once
+if "selected_categories" not in st.session_state:
+    st.session_state["selected_categories"] = ["Tech / AI", "EPL", "India"]
+
 selected_categories = st.sidebar.multiselect(
     "Pick categories to display:",
     options=list(CATEGORY_QUERIES.keys()),
-    default=["Tech / AI", "EPL", "India"],
+    default=st.session_state["selected_categories"],
+    key="selected_categories",
     help="Only the categories you select will be shown on the page.",
 )
 
