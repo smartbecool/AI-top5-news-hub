@@ -1,9 +1,6 @@
 streamlit
 requests
-beautifulsoup4
 feedparser
-altair
 pandas
 plotly
 streamlit-plotly-events
-
