@@ -4,6 +4,8 @@ import feedparser
 from urllib.parse import quote_plus
 from bs4 import BeautifulSoup
 from datetime import datetime
+import plotly.express as px
+
 
 import pandas as pd
 import altair as alt
@@ -92,41 +94,49 @@ def fetch_google_news(query: str, max_items: int = 5):
         st.error(f"Error while fetching news for '{query}': {e}")
         return []
 
-def show_bubble_chart(categories, primary_interest: str):
-    """
-    Simple bubble chart for selected categories.
-    Bubble size ≈ how often that category has been shown in this session.
-    """
-    if not categories:
-        return
-
+def show_bubble_chart(categories, primary_interest):
     data = []
     for cat in categories:
         engagement = st.session_state["category_engagement"].get(cat, 1)
-        is_primary = 1 if cat == primary_interest else 0
         data.append(
             {
                 "Category": cat,
                 "Engagement": engagement,
-                "Primary": "Yes" if is_primary else "No",
+                "IsPrimary": "Primary" if cat == primary_interest else "Regular",
             }
         )
 
-    df = pd.DataFrame(data)
-
-    chart = (
-        alt.Chart(df)
-        .mark_circle()
-        .encode(
-            x="Category:N",
-            y=alt.value(0),  # all bubbles on one horizontal line
-            size="Engagement:Q",
-            tooltip=["Category", "Engagement", "Primary"],
-        )
-        .properties(height=200)
+    fig = px.scatter(
+        data_frame=data,
+        x=[0]*len(data),  # force packing
+        y=[0]*len(data),
+        size="Engagement",
+        color="Category",
+        hover_name="Category",
+        size_max=120,
     )
 
-    st.altair_chart(chart, use_container_width=True)
+    # Make it look like a bubble pack
+    fig.update_traces(mode='markers', marker=dict(opacity=0.8, line=dict(width=2, color='white')))
+
+    fig.update_layout(
+        showlegend=False,
+        height=500,
+        margin=dict(t=20, b=20, l=20, r=20),
+    )
+
+    # Add labels inside bubbles
+    for i, d in enumerate(data):
+        fig.add_annotation(
+            x=0, y=0,
+            text=f"{d['Category']}<br>{d['Engagement']}",
+            showarrow=False,
+            font=dict(size=14, color="white"),
+            xanchor="center",
+            yanchor="middle"
+        )
+
+    st.plotly_chart(fig, use_container_width=True)
 
 # ------------ SIDEBAR ------------
 st.sidebar.header("⚙️ Configuration")
