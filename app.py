@@ -3,6 +3,7 @@ import requests
 import feedparser
 from urllib.parse import quote_plus
 from bs4 import BeautifulSoup
+from datetime import datetime
 
 
 # ------------ CONFIG ------------
@@ -11,6 +12,8 @@ st.set_page_config(
     page_icon="📰",
     layout="wide",
 )
+
+
 
 st.title("📰 Ai-Top 5 News Hub")
 st.caption("Configurable daily top news across your favorite categories.")
@@ -24,6 +27,11 @@ First working version ✅
 - Click **Refresh** to load the top 5 news for each
 """
 )
+
+# ------------ STATE ------------
+if "last_refresh" not in st.session_state:
+    st.session_state["last_refresh"] = None
+
 
 # Predefined categories and their search queries for Google News
 CATEGORY_QUERIES = {
@@ -126,7 +134,13 @@ if not ordered_categories:
     st.info("👈 Pick at least one category from the sidebar to get started.")
 else:
     if refresh_clicked:
+        st.session_state["last_refresh"] = datetime.now()
         st.success("News refreshed! Scroll down to view the latest top 5 in each category.")
+
+    # Show last refresh info if available
+    if st.session_state["last_refresh"] is not None:
+        ts = st.session_state["last_refresh"].strftime("%Y-%m-%d %H:%M")
+        st.caption(f"🕒 Last refreshed: {ts}")
 
     for cat in ordered_categories:
         st.markdown(f"## 📂 {cat}")
