@@ -5,7 +5,8 @@ from urllib.parse import quote_plus
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-
+import pandas as pd
+import altair as alt
 # ------------ CONFIG ------------
 st.set_page_config(
     page_title="ai-Top 5 News Hub",
@@ -32,6 +33,9 @@ First working version ✅
 if "last_refresh" not in st.session_state:
     st.session_state["last_refresh"] = None
 
+if "category_engagement" not in st.session_state:
+    # simple counter: how many times each category has been rendered
+    st.session_state["category_engagement"] = {}
 
 # Predefined categories and their search queries for Google News
 CATEGORY_QUERIES = {
@@ -88,6 +92,41 @@ def fetch_google_news(query: str, max_items: int = 5):
         st.error(f"Error while fetching news for '{query}': {e}")
         return []
 
+def show_bubble_chart(categories, primary_interest: str):
+    """
+    Simple bubble chart for selected categories.
+    Bubble size ≈ how often that category has been shown in this session.
+    """
+    if not categories:
+        return
+
+    data = []
+    for cat in categories:
+        engagement = st.session_state["category_engagement"].get(cat, 1)
+        is_primary = 1 if cat == primary_interest else 0
+        data.append(
+            {
+                "Category": cat,
+                "Engagement": engagement,
+                "Primary": "Yes" if is_primary else "No",
+            }
+        )
+
+    df = pd.DataFrame(data)
+
+    chart = (
+        alt.Chart(df)
+        .mark_circle()
+        .encode(
+            x="Category:N",
+            y=alt.value(0),  # all bubbles on one horizontal line
+            size="Engagement:Q",
+            tooltip=["Category", "Engagement", "Primary"],
+        )
+        .properties(height=200)
+    )
+
+    st.altair_chart(chart, use_container_width=True)
 
 # ------------ SIDEBAR ------------
 st.sidebar.header("⚙️ Configuration")
