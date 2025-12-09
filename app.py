@@ -5,18 +5,21 @@ from urllib.parse import quote_plus
 
 # ------------ CONFIG ------------
 st.set_page_config(
-    page_title="AI-Top 5 News Hub",
+    page_title="ai-Top 5 News Hub",
     page_icon="📰",
     layout="wide",
 )
 
-st.title("📰 AI-Top 5 News Hub")
+st.title("📰 Ai-Top 5 News Hub")
 st.caption("Configurable daily top news across your favorite categories.")
 
 st.write(
     """
-This is a first working version of your app.  
-Pick categories on the left, click **Refresh**, and see the top 5 headlines for each.
+First working version ✅  
+
+- Pick categories on the left  
+- Set your **primary interest**  
+- Click **Refresh** to load the top 5 news for each
 """
 )
 
@@ -31,7 +34,6 @@ CATEGORY_QUERIES = {
     "Champions League": "UEFA Champions League",
     "NFL": "NFL American football",
     "General Sports": "sports news",
-    "Stocks": "latest stocks news"
 }
 
 
@@ -50,12 +52,17 @@ def fetch_google_news(query: str, max_items: int = 5):
 
         items = []
         for entry in feed.entries[:max_items]:
+            source_title = ""
+            if hasattr(entry, "source") and isinstance(entry.source, dict):
+                source_title = entry.source.get("title", "")
+
             items.append(
                 {
                     "title": entry.get("title", "No title"),
                     "link": entry.get("link", ""),
                     "published": entry.get("published", ""),
-                    "source": getattr(entry, "source", {}).get("title", ""),
+                    "source": source_title,
+                    "summary": entry.get("summary", ""),
                 }
             )
         return items
@@ -66,6 +73,12 @@ def fetch_google_news(query: str, max_items: int = 5):
 
 # ------------ SIDEBAR ------------
 st.sidebar.header("⚙️ Configuration")
+
+primary_interest = st.sidebar.selectbox(
+    "Your primary focus (used to prioritize categories):",
+    options=["None"] + list(CATEGORY_QUERIES.keys()),
+    index=1,  # default to Tech / AI
+)
 
 selected_categories = st.sidebar.multiselect(
     "Pick categories to display:",
@@ -78,18 +91,33 @@ refresh_clicked = st.sidebar.button("🔁 Refresh news")
 
 st.sidebar.markdown("---")
 st.sidebar.caption(
-    "Future roadmap: user login, personalization, bubble UI, sentiment summary, etc."
+    "Roadmap: user login, daily refresh, bubble UI based on interactions, sentiment summary, etc."
 )
+
+# ------------ PERSONALIZATION BANNER ------------
+if primary_interest != "None":
+    st.info(
+        f"✨ Personalized for your interest in **{primary_interest}**. "
+        "That category will be shown first if selected."
+    )
+
+# Reorder categories so primary interest comes first (if selected)
+if primary_interest != "None" and primary_interest in selected_categories:
+    ordered_categories = [primary_interest] + [
+        c for c in selected_categories if c != primary_interest
+    ]
+else:
+    ordered_categories = selected_categories
 
 # ------------ MAIN CONTENT ------------
 
-if not selected_categories:
+if not ordered_categories:
     st.info("👈 Pick at least one category from the sidebar to get started.")
 else:
     if refresh_clicked:
         st.success("News refreshed! Scroll down to view the latest top 5 in each category.")
 
-    for cat in selected_categories:
+    for cat in ordered_categories:
         st.markdown(f"## 📂 {cat}")
 
         query = CATEGORY_QUERIES[cat]
@@ -104,9 +132,21 @@ else:
             title = article["title"]
             link = article["link"]
             published = article["published"]
+            source = article["source"]
+            summary = article["summary"]
 
             st.markdown(f"**{idx}. [{title}]({link})**")
+            meta = []
+            if source:
+                meta.append(source)
             if published:
-                st.caption(published)
+                meta.append(published)
+            if meta:
+                st.caption(" | ".join(meta))
+
+            # Small optional summary preview
+            if summary:
+                with st.expander("Summary"):
+                    st.write(summary)
 
         st.markdown("---")
