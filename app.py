@@ -3,6 +3,7 @@ import requests
 import feedparser
 from urllib.parse import quote_plus
 
+
 # ------------ CONFIG ------------
 st.set_page_config(
     page_title="ai-Top 5 News Hub",
@@ -56,15 +57,23 @@ def fetch_google_news(query: str, max_items: int = 5):
             if hasattr(entry, "source") and isinstance(entry.source, dict):
                 source_title = entry.source.get("title", "")
 
+            # Clean HTML from summary
+            raw_summary = entry.get("summary", "") or ""
+            if raw_summary:
+                summary_text = BeautifulSoup(raw_summary, "html.parser").get_text(" ", strip=True)
+            else:
+                summary_text = ""
+
             items.append(
                 {
                     "title": entry.get("title", "No title"),
                     "link": entry.get("link", ""),
                     "published": entry.get("published", ""),
                     "source": source_title,
-                    "summary": entry.get("summary", ""),
+                    "summary": summary_text,
                 }
             )
+
         return items
     except Exception as e:
         st.error(f"Error while fetching news for '{query}': {e}")
