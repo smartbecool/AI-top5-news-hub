@@ -5,3 +5,5 @@ feedparser
 altair
 pandas
 plotly
+streamlit-plotly-events
+
