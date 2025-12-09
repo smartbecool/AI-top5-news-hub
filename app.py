@@ -155,9 +155,6 @@ else:
             if meta:
                 st.caption(" | ".join(meta))
 
-            # Small optional summary preview
-            if summary:
-                with st.expander("Summary"):
-                    st.write(summary)
+           
 
         st.markdown("---")
