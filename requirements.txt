@@ -4,3 +4,4 @@ beautifulsoup4
 feedparser
 altair
 pandas
+plotly
