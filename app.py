@@ -101,8 +101,9 @@ if primary_interest != "None":
         "That category will be shown first if selected."
     )
 
-# Reorder categories so primary interest comes first (if selected)
-if primary_interest != "None" and primary_interest in selected_categories:
+# Always show primary interest category (even if user didn't select it)
+if primary_interest != "None":
+    # Ensure primary category is included at the top
     ordered_categories = [primary_interest] + [
         c for c in selected_categories if c != primary_interest
     ]
