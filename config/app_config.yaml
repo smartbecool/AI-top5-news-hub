@@ -1,0 +1,28 @@
+defaults:
+  primary_focus: "Tech / AI"
+  selected_categories:
+    - "Tech / AI"
+    - "EPL"
+    - "India"
+
+refresh:
+  daily_limit: true          # future: enforce only one refresh/day
+  show_last_refresh: true    # display the timestamp
+  auto_refresh_enabled: false
+
+bubble_settings:
+  base_size: 1
+  selected_boost: 5
+  primary_boost: 5
+  max_size: 140
+  spacing: 2                 # horizontal spacing multiplier
+
+ui:
+  show_summaries: false
+  show_sources: true
+  show_published_time: true
+  theme: "light"
+
+behavior:
+  always_include_primary: true
+  reorder_primary_first: true
