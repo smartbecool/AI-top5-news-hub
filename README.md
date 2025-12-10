@@ -46,6 +46,23 @@ Top 5 News Hub solves this by providing a **daily, personalized, category-contro
 - Extensible architecture for future AI integrations.
 
 ---
+## 📁 Project Structure
+
+Key directories in this project:
+
+- `config/` – YAML configuration files  
+  - `config/categories.yaml` → all news categories + queries  
+  - `config/app_config.yaml` → defaults, refresh behavior, bubble settings, UI flags  
+
+- `sql/` – Database-related SQL (PostgreSQL-friendly)  
+  - `sql/create_tables.sql` → users, categories, preferences, bookmarks, refresh logs  
+
+These are not fully wired into the app yet, but they define the
+future-proof architecture for:
+- user accounts  
+- stored preferences  
+- bookmarks  
+- analytics on refresh and usage patterns 
 
 ## 🚀 Current Features (MVP)
 
