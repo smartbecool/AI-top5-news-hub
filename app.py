@@ -90,10 +90,9 @@ def fetch_google_news(query: str, max_items: int = 5):
 
 def show_bubble_chart(selected_categories, primary_interest: str):
     """
-    Bubble chart that VISUALIZES categories.
-    - All categories are shown as bubbles.
-    - Size is based on engagement + whether it's selected + primary focus.
+    Bubble chart that VISUALIZES categories with labels inside bubbles.
     """
+
     data = []
     for idx, cat in enumerate(ALL_CATEGORIES):
         engagement = st.session_state["category_engagement"].get(cat, 1)
@@ -113,7 +112,7 @@ def show_bubble_chart(selected_categories, primary_interest: str):
                 "Engagement": engagement,
                 "Selected": "Selected" if is_selected else "Not selected",
                 "Primary": "Primary" if is_primary else "Regular",
-                "x": idx,   # spread horizontally
+                "x": idx * 2,   # horizontal spacing
                 "y": 0,
             }
         )
@@ -128,7 +127,7 @@ def show_bubble_chart(selected_categories, primary_interest: str):
         color="Category",
         hover_name="Category",
         hover_data=["Engagement", "Selected", "Primary"],
-        size_max=120,
+        size_max=140,
     )
 
     fig.update_traces(
@@ -139,15 +138,29 @@ def show_bubble_chart(selected_categories, primary_interest: str):
         ),
     )
 
+    # Remove axes visibility
     fig.update_layout(
         showlegend=False,
-        height=400,
+        height=420,
         margin=dict(t=20, b=10, l=10, r=10),
         xaxis=dict(visible=False),
         yaxis=dict(visible=False),
     )
 
+    # 📌 Add LABELS inside bubbles
+    for i, row in df.iterrows():
+        fig.add_annotation(
+            x=row["x"],
+            y=row["y"],
+            text=row["Category"],
+            showarrow=False,
+            font=dict(size=14, color="white", family="Arial Black"),
+            xanchor="center",
+            yanchor="middle",
+        )
+
     st.plotly_chart(fig, use_container_width=True)
+
 
 
 # ------------ SIDEBAR ------------
