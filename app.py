@@ -6,7 +6,6 @@ from datetime import datetime
 
 import pandas as pd
 import plotly.express as px
-from streamlit_plotly_events import plotly_events
 
 # ------------ CONFIG ------------
 st.set_page_config(
@@ -22,9 +21,10 @@ st.write(
     """
 First working version ✅  
 
-- Use the **bubbles** to select categories  
-- Set your **primary focus** in the sidebar  
-- Click **Refresh** to load the top 5 news for each selected category
+- Use the **sidebar** to select categories  
+- Set your **primary focus**  
+- Bubbles give you a visual sense of which categories you view more  
+- Click **Refresh** to load the top 5 news for each category
 """
 )
 
@@ -42,7 +42,6 @@ CATEGORY_QUERIES = {
 }
 
 ALL_CATEGORIES = list(CATEGORY_QUERIES.keys())
-
 
 # ------------ STATE ------------
 if "last_refresh" not in st.session_state:
@@ -89,36 +88,32 @@ def fetch_google_news(query: str, max_items: int = 5):
         return []
 
 
-def show_bubble_chart(primary_interest: str):
+def show_bubble_chart(selected_categories, primary_interest: str):
     """
-    Bubble chart that controls which categories are selected.
+    Bubble chart that VISUALIZES categories.
     - All categories are shown as bubbles.
-    - Click a bubble to toggle selection.
-    - Size is based on engagement + selection + primary focus.
+    - Size is based on engagement + whether it's selected + primary focus.
     """
     data = []
     for idx, cat in enumerate(ALL_CATEGORIES):
         engagement = st.session_state["category_engagement"].get(cat, 1)
-        is_selected = cat in st.session_state["selected_categories"]
-        is_primary = cat == primary_interest
+        is_selected = cat in selected_categories
+        is_primary = (cat == primary_interest)
 
-        # base size from engagement
         size = engagement
-        # make selected ones bigger
         if is_selected:
             size += 5
-        # make primary focus even bigger
         if is_primary:
             size += 5
 
         data.append(
             {
                 "Category": cat,
-                "Engagement": engagement,
                 "Size": size,
+                "Engagement": engagement,
                 "Selected": "Selected" if is_selected else "Not selected",
-                "IsPrimary": "Primary" if is_primary else "Regular",
-                "x": idx,   # spread bubbles horizontally
+                "Primary": "Primary" if is_primary else "Regular",
+                "x": idx,   # spread horizontally
                 "y": 0,
             }
         )
@@ -132,6 +127,7 @@ def show_bubble_chart(primary_interest: str):
         size="Size",
         color="Category",
         hover_name="Category",
+        hover_data=["Engagement", "Selected", "Primary"],
         size_max=120,
     )
 
@@ -145,37 +141,13 @@ def show_bubble_chart(primary_interest: str):
 
     fig.update_layout(
         showlegend=False,
-        height=500,
-        margin=dict(t=20, b=20, l=20, r=20),
+        height=400,
+        margin=dict(t=20, b=10, l=10, r=10),
         xaxis=dict(visible=False),
         yaxis=dict(visible=False),
     )
 
-    # Render chart and capture click
-    selected_points = plotly_events(
-        fig,
-        click_event=True,
-        hover_event=False,
-        select_event=False,
-        key="bubble_chart",
-    )
-
-    # If user clicked a bubble, toggle that category in selection
-    if selected_points:
-        point_index = selected_points[0]["pointIndex"]
-        clicked_category = df.iloc[point_index]["Category"]
-
-        current = st.session_state.get("selected_categories", [])
-        if clicked_category in current:
-            # remove
-            st.session_state["selected_categories"] = [
-                c for c in current if c != clicked_category
-            ]
-        else:
-            # add
-            st.session_state["selected_categories"] = current + [clicked_category]
-
-        st.experimental_rerun()
+    st.plotly_chart(fig, use_container_width=True)
 
 
 # ------------ SIDEBAR ------------
@@ -187,12 +159,21 @@ primary_interest = st.sidebar.selectbox(
     index=1,  # default to Tech / AI
 )
 
+selected_categories = st.sidebar.multiselect(
+    "Categories to show:",
+    options=ALL_CATEGORIES,
+    default=st.session_state["selected_categories"],
+    help="These categories will be shown below and highlighted in the bubbles.",
+)
+
+# keep selection in state
+st.session_state["selected_categories"] = selected_categories
+
 refresh_clicked = st.sidebar.button("🔁 Refresh news")
 
 st.sidebar.markdown("---")
-st.sidebar.write("✅ Use the bubbles to select / deselect categories.")
 st.sidebar.caption(
-    "Roadmap: user login, daily auto-refresh, smarter bubble sizing, sentiment summary, etc."
+    "Roadmap: bubble-based selection, user login, daily auto-refresh, sentiment summary, etc."
 )
 
 # ------------ MAIN CONTENT ------------
@@ -209,28 +190,28 @@ if st.session_state["last_refresh"] is not None:
 # Bubble chart
 st.subheader("Category bubble view")
 st.caption(
-    "Click bubbles to select categories. Size ≈ how often you viewed that category, "
-    "plus extra weight for selected + primary focus."
+    "Bubble size ≈ how often you viewed that category, plus extra weight for those you selected "
+    "and your primary focus."
 )
-show_bubble_chart(primary_interest)
+show_bubble_chart(selected_categories, primary_interest)
 st.markdown("---")
 
-# Determine which categories to show news for
-selected_categories = st.session_state["selected_categories"]
+# Determine which categories to show news for (ensure primary first)
+ordered_categories = selected_categories.copy()
 
 # Always include primary interest even if not selected
 if primary_interest != "None":
-    if primary_interest not in selected_categories:
-        selected_categories = [primary_interest] + selected_categories
-    else:
-        selected_categories = [primary_interest] + [
-            c for c in selected_categories if c != primary_interest
+    if primary_interest in ordered_categories:
+        ordered_categories = [primary_interest] + [
+            c for c in ordered_categories if c != primary_interest
         ]
+    else:
+        ordered_categories = [primary_interest] + ordered_categories
 
-if not selected_categories:
-    st.info("Select at least one category by clicking on the bubbles above.")
+if not ordered_categories:
+    st.info("Select at least one category from the sidebar.")
 else:
-    for cat in selected_categories:
+    for cat in ordered_categories:
         # update engagement counter whenever we show this category
         st.session_state["category_engagement"][cat] = (
             st.session_state["category_engagement"].get(cat, 0) + 1
