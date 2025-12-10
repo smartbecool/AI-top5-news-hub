@@ -1,0 +1,27 @@
+categories:
+  - name: "Tech / AI"
+    query: "artificial intelligence OR AI OR machine learning OR LLM OR GenAI"
+
+  - name: "Startups"
+    query: "startup funding OR tech startup"
+
+  - name: "India"
+    query: "India news"
+
+  - name: "USA"
+    query: "United States news"
+
+  - name: "World"
+    query: "world news"
+
+  - name: "EPL"
+    query: "English Premier League football"
+
+  - name: "Champions League"
+    query: "UEFA Champions League"
+
+  - name: "NFL"
+    query: "NFL American football"
+
+  - name: "General Sports"
+    query: "sports news"
