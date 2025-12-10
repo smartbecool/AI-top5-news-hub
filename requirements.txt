@@ -3,4 +3,4 @@ requests
 feedparser
 pandas
 plotly
-streamlit-plotly-events
+
